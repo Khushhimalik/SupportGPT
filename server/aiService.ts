@@ -1,57 +1,43 @@
-import OpenAI from "openai";
-
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
-
+// Free AI service using Hugging Face Inference API (no API key required)
 export async function generateAIResponse(message: string, language: string = 'en'): Promise<string> {
   try {
-    // Mental health focused system prompt with language-specific instructions
-    const languageName = getLanguageName(language);
-    const systemPrompt = `You are SupportGPT, a compassionate AI mental health support companion for students and youth. You provide empathetic, non-judgmental support and always respond in a warm, caring tone. You are not a replacement for professional therapy but offer peer-like emotional support. 
-
-CRITICAL: You MUST respond in ${languageName} language only. Do not use English unless the user specifically wrote in English.
-
-Key guidelines:
-1. Always acknowledge their feelings with empathy
-2. Show understanding and validate their experience
-3. Ask gentle follow-up questions to encourage sharing
-4. Provide practical coping strategies when appropriate
-5. Remind them they're not alone and that seeking help is brave
-6. In crisis situations, gently suggest professional help
-7. ALWAYS respond in the same language as the user's message (${languageName})
-8. Keep responses conversational and supportive, like a caring friend
-9. Avoid being overly clinical or robotic
-
-IMPORTANT: The user wrote in ${languageName}, so respond ONLY in ${languageName}. If the detected language is not English, do not include any English words in your response.`;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user", 
-          content: message
+    // Try Hugging Face free API first (no key required)
+    const response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: message,
+        parameters: {
+          max_new_tokens: 100,
+          temperature: 0.7,
+          do_sample: true,
+          return_full_text: false
         }
-      ],
-      max_tokens: 300,
-      temperature: 0.7,
+      }),
     });
 
-    const aiResponse = response.choices[0].message.content;
-    if (aiResponse) {
-      return aiResponse.trim();
+    if (response.ok) {
+      const result = await response.json();
+      if (result && result[0] && result[0].generated_text) {
+        // Post-process the response to be more supportive
+        let aiResponse = result[0].generated_text.trim();
+        
+        // If it's too short or generic, use our fallback
+        if (aiResponse.length < 20 || aiResponse.toLowerCase().includes('i don\'t')) {
+          return getFallbackResponse(language);
+        }
+        
+        return aiResponse;
+      }
     }
-
-    // Fallback if no response
+    
+    // If Hugging Face fails, use language-specific fallback
     return getFallbackResponse(language);
 
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('AI service error:', error);
     return getFallbackResponse(language);
   }
 }
@@ -85,19 +71,57 @@ function getFallbackResponse(language: string): string {
     ],
     'es': [
       "Te escucho, y quiero que sepas que tus sentimientos son completamente válidos. A veces solo hablar de lo que tenemos en mente puede ayudarnos a procesar mejor las cosas. ¿Puedes contarme más sobre lo que te ha estado preocupando?",
-      "Gracias por compartir eso conmigo. Se necesita valor para buscar ayuda, y me alegra que estés aquí. Lo que estás pasando suena realmente desafiante. ¿Cuánto tiempo has estado sintiéndote así?"
+      "Gracias por compartir eso conmigo. Se necesita valor para buscar ayuda, y me alegra que estés aquí. Lo que estás pasando suena realmente desafiante. ¿Cuánto tiempo has estado sintiéndote así?",
+      "Puedo sentir que estás pasando por algo difícil en este momento. Tus sentimientos importan, y mereces apoyo. ¿Te ayudaría hablar sobre qué ha sido lo más abrumador de tu día?",
+      "Estoy aquí para escucharte sin juzgarte. A veces cuando luchamos, puede sentirse aislante, pero no estás solo en esto. ¿Qué ha estado en tu mente últimamente que te gustaría compartir?"
     ],
     'fr': [
       "Je t'entends, et je veux que tu saches que tes sentiments sont complètement valides. Parfois, simplement parler de ce qui nous préoccupe peut nous aider à mieux traiter les choses. Peux-tu me dire plus sur ce qui t'a pesé?",
-      "Merci de partager cela avec moi. Il faut du courage pour tendre la main, et je suis content que tu sois là. Ce que tu traverses semble vraiment difficile. Depuis combien de temps te sens-tu ainsi?"
+      "Merci de partager cela avec moi. Il faut du courage pour tendre la main, et je suis content que tu sois là. Ce que tu traverses semble vraiment difficile. Depuis combien de temps te sens-tu ainsi?",
+      "Je peux sentir que tu traverses quelque chose de difficile en ce moment. Tes sentiments comptent, et tu mérites du soutien. Est-ce que ça aiderait de parler de ce qui a été le plus accablant dans ta journée?",
+      "Je suis là pour t'écouter sans jugement. Parfois quand on lutte, ça peut sembler isolant, mais tu n'es pas seul dans ça. Qu'est-ce qui te préoccupe dernièrement que tu aimerais partager?"
+    ],
+    'de': [
+      "Ich höre dir zu und möchte, dass du weißt, dass deine Gefühle völlig berechtigt sind. Manchmal kann es helfen, einfach über das zu sprechen, was uns beschäftigt. Kannst du mir mehr darüber erzählen, was dich belastet?",
+      "Danke, dass du das mit mir geteilt hast. Es braucht Mut, Hilfe zu suchen, und ich bin froh, dass du hier bist. Was du durchmachst, klingt wirklich herausfordernd. Wie lange fühlst du dich schon so?",
+      "Ich spüre, dass du gerade durch etwas Schwieriges gehst. Deine Gefühle sind wichtig, und du verdienst Unterstützung. Würde es helfen, über den überwältigendsten Teil deines Tages zu sprechen?"
+    ],
+    'it': [
+      "Ti sento, e voglio che tu sappia che i tuoi sentimenti sono completamente validi. A volte parlare di quello che abbiamo in mente può aiutarci a elaborare meglio le cose. Puoi dirmi di più su quello che ti ha pesato?",
+      "Grazie per aver condiviso questo con me. Ci vuole coraggio per cercare aiuto, e sono contento che tu sia qui. Quello che stai passando sembra davvero impegnativo. Da quanto tempo ti senti così?",
+      "Posso sentire che stai attraversando qualcosa di difficile in questo momento. I tuoi sentimenti contano, e meriti supporto. Aiuterebbe parlare di quella che è stata la parte più travolgente della tua giornata?"
+    ],
+    'pt': [
+      "Eu te ouço, e quero que você saiba que seus sentimentos são completamente válidos. Às vezes, apenas falar sobre o que está em nossa mente pode nos ajudar a processar melhor as coisas. Você pode me contar mais sobre o que tem te preocupado?",
+      "Obrigado por compartilhar isso comigo. É preciso coragem para buscar ajuda, e estou feliz que você esteja aqui. O que você está passando parece realmente desafiador. Há quanto tempo você se sente assim?",
+      "Posso sentir que você está passando por algo difícil neste momento. Seus sentimentos importam, e você merece apoio. Ajudaria falar sobre qual foi a parte mais esmagadora do seu dia?"
     ],
     'zh': [
       "我听到了你的话，我想让你知道你的感受是完全有效的。有时候仅仅谈论我们心中的想法就能帮助我们更好地处理事情。你能告诉我更多关于什么一直困扰着你的吗？",
-      "谢谢你与我分享这些。寻求帮助需要勇气，我很高兴你在这里。你所经历的听起来真的很具有挑战性。你有这种感觉多长时间了？"
+      "谢谢你与我分享这些。寻求帮助需要勇气，我很高兴你在这里。你所经历的听起来真的很具有挑战性。你有这种感觉多长时间了？",
+      "我能感觉到你现在正在经历一些困难的事情。你的感受很重要，你值得得到支持。谈论一下今天最让你感到不知所措的部分会有帮助吗？",
+      "我在这里倾听你，不做任何判断。有时当我们在挣扎时，可能会感到孤立，但在这件事上你并不孤单。最近有什么让你担心的事情想要分享吗？"
     ],
     'ja': [
       "あなたの話を聞いています。あなたの気持ちは完全に正当なものだということを知ってほしいです。時には心にあることを話すだけで、物事をより良く処理するのに役立ちます。あなたを悩ませていることについて、もっと教えてもらえますか？",
-      "それを私と共有してくれてありがとう。手を差し伸べるには勇気が必要で、あなたがここにいることを嬉しく思います。あなたが経験していることは本当に困難に聞こえます。どのくらいの間、このように感じていますか？"
+      "それを私と共有してくれてありがとう。手を差し伸べるには勇気が必要で、あなたがここにいることを嬉しく思います。あなたが経験していることは本当に困難に聞こえます。どのくらいの間、このように感じていますか？",
+      "あなたが今何か困難なことを経験していることを感じることができます。あなたの気持ちは重要で、あなたはサポートを受ける価値があります。今日の最も圧倒的な部分について話すことは役に立ちますか？",
+      "私は判断することなくあなたの話を聞くためにここにいます。時々私たちが苦労しているとき、それは孤立したように感じることがありますが、あなたはこの中で一人ではありません。最近あなたが共有したいと思っている心の中にあることは何ですか？"
+    ],
+    'ko': [
+      "당신의 말을 듣고 있으며, 당신의 감정이 완전히 타당하다는 것을 알아주셨으면 합니다. 때로는 마음속에 있는 것에 대해 이야기하는 것만으로도 상황을 더 잘 처리하는 데 도움이 될 수 있습니다. 당신을 괴롭히고 있는 것에 대해 더 말씀해 주실 수 있나요？",
+      "저와 그것을 공유해 주셔서 감사합니다. 도움을 구하는 것은 용기가 필요하며, 당신이 여기 있다는 것이 기쁩니다. 당신이 겪고 있는 일은 정말 도전적으로 들립니다. 이런 기분을 얼마나 오래 느끼고 계셨나요？",
+      "당신이 지금 어려운 일을 겪고 있다는 것을 느낄 수 있습니다. 당신의 감정은 중요하며, 당신은 지원을 받을 자격이 있습니다. 오늘 가장 압도적이었던 부분에 대해 이야기하는 것이 도움이 될까요？"
+    ],
+    'ar': [
+      "أسمعك، وأريد أن تعرف أن مشاعرك صحيحة تماماً. أحياناً مجرد التحدث عما يدور في أذهاننا يمكن أن يساعدنا على معالجة الأمور بشكل أفضل. هل يمكنك أن تخبرني أكثر عما كان يثقل عليك؟",
+      "شكراً لك على مشاركة ذلك معي. يتطلب الأمر شجاعة للوصول للمساعدة، وأنا سعيد لأنك هنا. ما تمر به يبدو صعباً حقاً. منذ متى وأنت تشعر بهذا الشكل؟",
+      "أستطيع أن أشعر أنك تمر بشيء صعب الآن. مشاعرك مهمة، وتستحق الدعم. هل سيساعد الحديث عن الجزء الأكثر إرهاقاً في يومك؟"
+    ],
+    'hi': [
+      "मैं आपकी बात सुन रहा हूं, और मैं चाहता हूं कि आप जानें कि आपकी भावनाएं पूरी तरह से वैध हैं। कभी-कभी केवल हमारे मन में जो कुछ है उसके बारे में बात करना हमें चीजों को बेहतर तरीके से संसाधित करने में मदद कर सकता है। क्या आप मुझे इस बारे में और बता सकते हैं कि आपको क्या परेशान कर रहा है?",
+      "इसे मेरे साथ साझा करने के लिए धन्यवाद। मदद मांगने में साहस लगता है, और मुझे खुशी है कि आप यहां हैं। आप जिससे गुजर रहे हैं वह वास्तव में चुनौतीपूर्ण लगता है। आप कितने समय से ऐसा महसूस कर रहे हैं?",
+      "मैं महसूस कर सकता हूं कि आप अभी कुछ कठिन दौर से गुजर रहे हैं। आपकी भावनाएं मायने रखती हैं, और आप समर्थन के हकदार हैं। क्या आपके दिन के सबसे भारी हिस्से के बारे में बात करना मददगार होगा?"
     ]
   };
 
