@@ -1,17 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Globe, UserCheck, AlertTriangle, Heart } from 'lucide-react';
+import { Send, Globe, UserCheck, Heart, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
 import { QuickActions } from './QuickActions';
-import { CrisisModal } from './CrisisModal';
 import { useChat } from '@/hooks/useChat';
 import { getLanguageDisplayName } from '@/lib/languageDetection';
 
 export function ChatInterface() {
   const [inputValue, setInputValue] = useState('');
-  const [showCrisisModal, setShowCrisisModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -52,18 +50,6 @@ export function ChatInterface() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      {/* Crisis Alert Bar */}
-      <div className="crisis-alert text-white py-3 px-4 text-center text-sm font-medium">
-        <AlertTriangle className="inline w-4 h-4 mr-2" />
-        <span>In crisis? Call 988 (Suicide & Crisis Lifeline) or text HOME to 741741 (Crisis Text Line)</span>
-        <button
-          onClick={() => setShowCrisisModal(true)}
-          className="ml-4 underline hover:no-underline"
-        >
-          More Resources
-        </button>
-      </div>
-
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -167,7 +153,7 @@ export function ChatInterface() {
         {/* Important Disclaimer */}
         <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
           <div className="flex items-start space-x-3">
-            <AlertTriangle className="w-5 h-5 text-support-accent mt-1 flex-shrink-0" />
+            <Info className="w-5 h-5 text-support-accent mt-1 flex-shrink-0" />
             <div>
               <h4 className="font-semibold text-amber-800 mb-1">Important Notice</h4>
               <p className="text-amber-700 text-sm">
@@ -179,8 +165,7 @@ export function ChatInterface() {
         </div>
       </div>
 
-      {/* Crisis Resources Modal */}
-      <CrisisModal isOpen={showCrisisModal} onClose={() => setShowCrisisModal(false)} />
+
     </div>
   );
 }
