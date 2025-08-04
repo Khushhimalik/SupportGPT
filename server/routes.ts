@@ -5,24 +5,38 @@ import { aiRequestSchema, messageSchema } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { generateAIResponse } from "./aiService";
 
-// Language detection using character patterns
+// Enhanced language detection using character patterns and common words
 async function detectLanguage(text: string): Promise<string> {
   try {
-    // Simple language detection based on character patterns
+    const cleanText = text.toLowerCase().trim();
+    
+    // Character-based detection for non-Latin scripts
     if (/[\u4e00-\u9fff]/.test(text)) return 'zh';
     if (/[\u0600-\u06ff]/.test(text)) return 'ar';
     if (/[\u0400-\u04ff]/.test(text)) return 'ru';
     if (/[\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja';
     if (/[\uac00-\ud7af]/.test(text)) return 'ko';
     if (/[\u0900-\u097f]/.test(text)) return 'hi';
+    if (/[\u0e00-\u0e7f]/.test(text)) return 'th';
     
-    // European language detection (basic)
-    const text_lower = text.toLowerCase();
-    if (/\b(el|la|los|las|de|que|en|es|y|a|por|para|con|se|del|al)\b/.test(text_lower)) return 'es';
-    if (/\b(le|la|les|de|que|et|en|est|pour|avec|ce|du|au|des)\b/.test(text_lower)) return 'fr';
-    if (/\b(der|die|das|und|in|zu|mit|ist|auf|für|von|dem|den)\b/.test(text_lower)) return 'de';
-    if (/\b(il|la|di|che|e|in|è|per|con|del|della|dal)\b/.test(text_lower)) return 'it';
-    if (/\b(o|a|de|que|e|em|é|para|com|do|da|dos)\b/.test(text_lower)) return 'pt';
+    // European language detection with more comprehensive patterns
+    // Spanish
+    if (/\b(soy|estoy|tengo|quiero|necesito|me|mi|tu|su|el|la|los|las|de|que|en|es|y|a|por|para|con|se|del|al|muy|más|pero|como|cuando|donde|hola|adiós|gracias|por favor)\b/.test(cleanText)) return 'es';
+    
+    // French  
+    if (/\b(je|tu|il|elle|nous|vous|ils|elles|suis|es|est|sommes|êtes|sont|ai|as|a|avons|avez|ont|le|la|les|de|du|des|et|en|pour|avec|ce|cette|ces|bonjour|merci|s'il vous plaît)\b/.test(cleanText)) return 'fr';
+    
+    // German
+    if (/\b(ich|du|er|sie|es|wir|ihr|bin|bist|ist|sind|seid|haben|habe|hast|hat|habt|der|die|das|und|in|zu|mit|auf|für|von|dem|den|aber|wenn|wie|wo|hallo|danke|bitte)\b/.test(cleanText)) return 'de';
+    
+    // Italian
+    if (/\b(io|tu|lui|lei|noi|voi|loro|sono|sei|è|siamo|siete|ho|hai|ha|abbiamo|avete|hanno|il|la|lo|gli|le|di|che|e|in|per|con|del|della|ma|se|come|dove|ciao|grazie|prego)\b/.test(cleanText)) return 'it';
+    
+    // Portuguese
+    if (/\b(eu|tu|você|ele|ela|nós|vocês|eles|elas|sou|és|é|somos|são|tenho|tens|tem|temos|têm|o|a|os|as|de|que|e|em|para|com|do|da|dos|das|mas|se|como|onde|olá|obrigado|por favor)\b/.test(cleanText)) return 'pt';
+    
+    // Dutch
+    if (/\b(ik|jij|hij|zij|wij|jullie|ben|bent|is|zijn|heb|hebt|heeft|hebben|de|het|een|en|in|op|van|voor|met|maar|als|wat|waar|hallo|dank|alsjeblieft)\b/.test(cleanText)) return 'nl';
     
     // Default to English
     return 'en';
