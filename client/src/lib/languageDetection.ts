@@ -6,6 +6,7 @@ export function detectBrowserLanguage(): string {
 
 export function getLanguageDisplayName(code: string): string {
   const languages: Record<string, string> = {
+    // International languages
     'en': 'English',
     'es': 'Español',
     'fr': 'Français',
@@ -17,17 +18,30 @@ export function getLanguageDisplayName(code: string): string {
     'ko': '한국어',
     'zh': '中文',
     'ar': 'العربية',
-    'hi': 'हिन्दी',
-    'kn': 'ಕನ್ನಡ',
-    'te': 'తెలుగు',
-    'ta': 'தமிழ்',
-    'ml': 'മലയാളം',
-    'gu': 'ગુજરાતી',
-    'pa': 'ਪੰਜਾਬੀ',
-    'or': 'ଓଡ଼ିଆ',
-    'bn': 'বাংলা',
-    'mr': 'मराठी',
-    'ur': 'اردو'
+    
+    // 22 Official Indian Languages
+    'hi': 'हिन्दी', // Hindi
+    'bn': 'বাংলা', // Bengali
+    'te': 'తెలుగు', // Telugu
+    'mr': 'मराठी', // Marathi
+    'ta': 'தமிழ்', // Tamil
+    'ur': 'اردو', // Urdu
+    'gu': 'ગુજરાતી', // Gujarati
+    'kn': 'ಕನ್ನಡ', // Kannada
+    'ml': 'മലയാളം', // Malayalam
+    'or': 'ଓଡ଼ିଆ', // Odia
+    'pa': 'ਪੰਜਾਬੀ', // Punjabi
+    'as': 'অসমীয়া', // Assamese
+    'mai': 'मैथिली', // Maithili
+    'sa': 'संस्कृतम्', // Sanskrit
+    'ne': 'नेपाली', // Nepali
+    'ks': 'कॉशुर / کٲشُر', // Kashmiri
+    'kok': 'कोंकणी', // Konkani
+    'sd': 'سنڌي / सिन्धी', // Sindhi
+    'mni': 'ꯃꯤꯇꯩ ꯂꯣꯟ', // Meitei (Manipuri)
+    'brx': 'बड़ो', // Bodo
+    'sat': 'ᱥᱟᱱᱛᱟᱲᱤ', // Santali
+    'doi': 'डोगरी' // Dogri
   };
   
   return languages[code] || 'Unknown Language';
@@ -45,16 +59,54 @@ export function detectTextLanguage(text: string): string {
     if (/[\uac00-\ud7af]/.test(text)) return 'ko';
     if (/[\u0e00-\u0e7f]/.test(text)) return 'th';
     
-    // Indian languages detection
-    if (/[\u0900-\u097f]/.test(text)) return 'hi'; // Devanagari (Hindi)
-    if (/[\u0c80-\u0cff]/.test(text)) return 'kn'; // Kannada
-    if (/[\u0c00-\u0c7f]/.test(text)) return 'te'; // Telugu
-    if (/[\u0b80-\u0bff]/.test(text)) return 'ta'; // Tamil
-    if (/[\u0d00-\u0d7f]/.test(text)) return 'ml'; // Malayalam
-    if (/[\u0a80-\u0aff]/.test(text)) return 'gu'; // Gujarati
+    // Indian languages detection (22 official languages)
+    if (/[\u0900-\u097f]/.test(text)) return 'hi'; // Devanagari (Hindi, Sanskrit, Marathi, Nepali)
+    if (/[\u0980-\u09ff]/.test(text)) return 'bn'; // Bengali (also Assamese)
     if (/[\u0a00-\u0a7f]/.test(text)) return 'pa'; // Punjabi
+    if (/[\u0a80-\u0aff]/.test(text)) return 'gu'; // Gujarati
     if (/[\u0b00-\u0b7f]/.test(text)) return 'or'; // Odia
-    if (/[\u0980-\u09ff]/.test(text)) return 'bn'; // Bengali
+    if (/[\u0b80-\u0bff]/.test(text)) return 'ta'; // Tamil
+    if (/[\u0c00-\u0c7f]/.test(text)) return 'te'; // Telugu
+    if (/[\u0c80-\u0cff]/.test(text)) return 'kn'; // Kannada
+    if (/[\u0d00-\u0d7f]/.test(text)) return 'ml'; // Malayalam
+    if (/[\u1c50-\u1c7f]/.test(text)) return 'sat'; // Santali
+    if (/[\uabc0-\uabff]/.test(text)) return 'mni'; // Meitei (Manipuri)
+    
+    // Check for common words to differentiate similar scripts
+    
+    // Assamese vs Bengali distinction
+    if (/[\u0980-\u09ff]/.test(text) && /\b(মই|আমি|তুমি|আপুনি)\b/.test(cleanText)) return 'as';
+    if (/[\u0980-\u09ff]/.test(text) && /\b(আমি|তুমি|তোমার|আমার)\b/.test(cleanText)) return 'bn';
+    
+    // Sanskrit vs Hindi distinction
+    if (/[\u0900-\u097f]/.test(text) && /\b(अहम्|त्वम्|एतत्|तत्|किम्)\b/.test(cleanText)) return 'sa';
+    
+    // Marathi vs Hindi distinction
+    if (/[\u0900-\u097f]/.test(text) && /\b(मी|तू|तुम्ही|आम्ही|माझा|तुझा)\b/.test(cleanText)) return 'mr';
+    
+    // Nepali vs Hindi distinction
+    if (/[\u0900-\u097f]/.test(text) && /\b(म|तिमी|तपाईं|हामी|मेरो|तिम्रो)\b/.test(cleanText)) return 'ne';
+    
+    // Konkani (uses Devanagari)
+    if (/[\u0900-\u097f]/.test(text) && /\b(हांव|तूं|आमी|तुमी)\b/.test(cleanText)) return 'kok';
+    
+    // Maithili (uses Devanagari)
+    if (/[\u0900-\u097f]/.test(text) && /\b(हम|अहाँ|तोहर|हमर)\b/.test(cleanText)) return 'mai';
+    
+    // Urdu (uses Arabic script)
+    if (/[\u0600-\u06ff]/.test(text) && /\b(میں|تم|آپ|ہم)\b/.test(cleanText)) return 'ur';
+    
+    // Kashmiri (uses both Arabic and Devanagari)
+    if (/[\u0600-\u06ff\u0900-\u097f]/.test(text) && /\b(بہ|تہ|یہ|اسہ)\b/.test(cleanText)) return 'ks';
+    
+    // Sindhi (uses both Arabic and Devanagari)
+    if (/[\u0600-\u06ff\u0900-\u097f]/.test(text) && /\b(مان|توهان|هي|اهو)\b/.test(cleanText)) return 'sd';
+    
+    // Bodo (uses Devanagari)
+    if (/[\u0900-\u097f]/.test(text) && /\b(आं|नों|बे|सिन)\b/.test(cleanText)) return 'brx';
+    
+    // Dogri (uses Devanagari)
+    if (/[\u0900-\u097f]/.test(text) && /\b(मैं|तुसां|असां|तुंदा)\b/.test(cleanText)) return 'doi';
     
     // European language detection with comprehensive patterns
     // Spanish

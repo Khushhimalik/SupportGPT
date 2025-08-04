@@ -33,7 +33,11 @@ Preferred communication style: Simple, everyday language.
 - **Primary Provider**: Hugging Face Inference API using DialoGPT-medium model
 - **Fallback System**: Multiple fallback options including predefined empathetic responses for reliability
 - **Response Customization**: Mental health-focused system prompts designed for student support scenarios
-- **Language Support**: Multi-language response generation with automatic language detection
+- **Language Support**: Comprehensive multi-language support with 22 official Indian languages plus international languages
+  - **Indian Languages**: Hindi, Bengali, Telugu, Marathi, Tamil, Urdu, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese, Maithili, Sanskrit, Nepali, Kashmiri, Konkani, Sindhi, Meitei (Manipuri), Bodo, Santali, Dogri
+  - **International Languages**: English, Spanish, French, German, Italian, Portuguese, Russian, Japanese, Korean, Chinese, Arabic, Thai
+  - **Script Detection**: Advanced Unicode range detection for proper script identification
+  - **Contextual Detection**: Word-pattern matching to distinguish between languages using similar scripts
 
 ## External Dependencies
 - **Neon Database**: PostgreSQL database service (@neondatabase/serverless) configured but not actively used
