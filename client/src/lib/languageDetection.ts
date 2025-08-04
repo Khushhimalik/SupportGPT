@@ -17,7 +17,17 @@ export function getLanguageDisplayName(code: string): string {
     'ko': '한국어',
     'zh': '中文',
     'ar': 'العربية',
-    'hi': 'हिन्दी'
+    'hi': 'हिन्दी',
+    'kn': 'ಕನ್ನಡ',
+    'te': 'తెలుగు',
+    'ta': 'தமிழ்',
+    'ml': 'മലയാളം',
+    'gu': 'ગુજરાતી',
+    'pa': 'ਪੰਜਾਬੀ',
+    'or': 'ଓଡ଼ିଆ',
+    'bn': 'বাংলা',
+    'mr': 'मराठी',
+    'ur': 'اردو'
   };
   
   return languages[code] || 'Unknown Language';
@@ -33,8 +43,18 @@ export function detectTextLanguage(text: string): string {
     if (/[\u0400-\u04ff]/.test(text)) return 'ru';
     if (/[\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja';
     if (/[\uac00-\ud7af]/.test(text)) return 'ko';
-    if (/[\u0900-\u097f]/.test(text)) return 'hi';
     if (/[\u0e00-\u0e7f]/.test(text)) return 'th';
+    
+    // Indian languages detection
+    if (/[\u0900-\u097f]/.test(text)) return 'hi'; // Devanagari (Hindi)
+    if (/[\u0c80-\u0cff]/.test(text)) return 'kn'; // Kannada
+    if (/[\u0c00-\u0c7f]/.test(text)) return 'te'; // Telugu
+    if (/[\u0b80-\u0bff]/.test(text)) return 'ta'; // Tamil
+    if (/[\u0d00-\u0d7f]/.test(text)) return 'ml'; // Malayalam
+    if (/[\u0a80-\u0aff]/.test(text)) return 'gu'; // Gujarati
+    if (/[\u0a00-\u0a7f]/.test(text)) return 'pa'; // Punjabi
+    if (/[\u0b00-\u0b7f]/.test(text)) return 'or'; // Odia
+    if (/[\u0980-\u09ff]/.test(text)) return 'bn'; // Bengali
     
     // European language detection with comprehensive patterns
     // Spanish
